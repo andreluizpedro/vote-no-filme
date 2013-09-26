@@ -2,48 +2,44 @@ package br.com.bluesoft.service;
 
 import java.util.List;
 
-import javax.persistence.EntityManager;
-import javax.persistence.PersistenceContext;
-
-import org.hibernate.Query;
-import org.hibernate.Session;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
 
+import br.com.bluesoft.dao.FilmeDao;
 import br.com.bluesoft.model.Filme;
 
 @Component
 @Transactional
 public class FilmeServiceImpl implements FilmeService {
 	
-	@PersistenceContext
-	private EntityManager entityManager;
-
-	@SuppressWarnings("unchecked")
+	@Autowired
+	public FilmeDao filmeDao;
+	
 	@Override
 	public List<Filme> carregaTodos() {
-		Query consulta = ((Session) entityManager.getDelegate()).createQuery("from Filme");
-		return consulta.list();
+		return filmeDao.carregaTodos();
 	}
 
-	@SuppressWarnings("unchecked")
 	@Override
 	public List<Filme> carregaDoisFilmes(List<Filme> list) {
-		Session session = (Session) entityManager.getDelegate();
-		Query consulta;
-		if (list.isEmpty()) {
-			consulta = session.createQuery("from Filme");
-		} else {
-			consulta = session.createQuery("from Filme f where f not in(:filmes)");
-			consulta.setParameterList("filmes", list);
-		}
-		consulta.setMaxResults(2);
-		return consulta.list();
+		return filmeDao.carregaDoisFilmes(list);
 	}
 
 	@Override
-	public Filme carregaPorId(Long filmeId) {
-		return entityManager.find(Filme.class, filmeId);
+	public Filme carregaPorId(long filmeId) {
+		return filmeDao.carregaPorId(filmeId);
+	}
+	
+	@Override
+	public Filme adicionaVoto(Long filmeId) {
+		Filme filme = carregaPorId(filmeId);
+		if (filme != null) {
+			filme.adicionaVoto();
+			filme = filmeDao.atualiza(filme);
+		}
+		
+		return filme;
 	}
 
 }

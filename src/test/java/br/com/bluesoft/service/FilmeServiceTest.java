@@ -52,6 +52,36 @@ public class FilmeServiceTest {
 		List<Filme> filmes = filmeService.carregaDoisFilmes(primeiroFilmeEscolhido());
 		assertEquals(segundoETerceiroFilme(), filmes);
 	}
+	
+	@Test
+	public void carregaPrimeiroFilmePorId() {
+		long filmeId = 1;
+		Filme primeiroFilme = filmeService.carregaPorId(filmeId);
+		assertEquals(primeiroFilmeEscolhido().get(0), primeiroFilme);
+	}
+	
+	@Test
+	public void filmeNaoEncontrado() {
+		long filmeId = 0;
+		Filme primeiroFilme = filmeService.carregaPorId(filmeId);
+		assertNull(primeiroFilme);
+	}
+	
+	@Test
+	public void votaFilmeEntaoRetornaOFilmeComAVotacaoAtualizada() {
+		long filmeId = 1;
+		Filme filme = filmeService.carregaPorId(filmeId);
+		assertEquals(0l, filme.getVotos().longValue());
+		filme = filmeService.adicionaVoto(filmeId);
+		assertEquals(1l, filme.getVotos().longValue());
+	}
+	
+	@Test
+	public void votaFilmeNaoEncontradoEntaoRetornaFilmeVazio() {
+		long filmeId = 0;
+		Filme filme = filmeService.adicionaVoto(filmeId);
+		assertNull(filme);
+	}
 
 	private List<Filme> todosOsFilmes() {
 		List<Filme> filmes = new ArrayList<>();

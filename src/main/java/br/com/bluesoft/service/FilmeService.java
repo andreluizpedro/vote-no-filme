@@ -10,6 +10,8 @@ public interface FilmeService {
 
 	List<Filme> carregaDoisFilmes(List<Filme> list);
 
-	Filme carregaPorId(Long filmeId);
+	Filme carregaPorId(long filmeId);
+
+	Filme adicionaVoto(Long filmeId);
 
 }

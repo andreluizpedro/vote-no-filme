@@ -1,9 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <dataset>
-	<filme id="1" titulo="Depois da Terra" capa="/imagens/01_depois_da_terra.jpg"/>
-	<filme id="2" titulo="Meu Malvado Favorito 2" capa="/imagens/02_meu_malvado_favorito_2.jpg"/>
-	<filme id="3" titulo="Velozes &amp; Furiosos 6" capa="/imagens/03_velozes_e_furiosos_6.jpg"/>
-	<filme id="4" titulo="O Senhor dos An&#233;is - O Retorno do Rei" capa="/imagens/04_o_senhor_dos_aneis_-_o_retorno_do_rei.jpg"/>
-	<filme id="5" titulo="Os Vingadores - The Avengers" capa="/imagens/05_os_vingadores_-_the_avengers.jpg"/>
+	<filme id="1" titulo="Depois da Terra" capa="/imagens/01_depois_da_terra.jpg" votos="0"/>
+	<filme id="2" titulo="Meu Malvado Favorito 2" capa="/imagens/02_meu_malvado_favorito_2.jpg"  votos="0"/>
+	<filme id="3" titulo="Velozes &amp; Furiosos 6" capa="/imagens/03_velozes_e_furiosos_6.jpg"  votos="0"/>
+	<filme id="4" titulo="O Senhor dos An&#233;is - O Retorno do Rei" capa="/imagens/04_o_senhor_dos_aneis_-_o_retorno_do_rei.jpg"  votos="0"/>
+	<filme id="5" titulo="Os Vingadores - The Avengers" capa="/imagens/05_os_vingadores_-_the_avengers.jpg"  votos="0"/>
 </dataset>

@@ -1,17 +1,25 @@
 package br.com.bluesoft.model;
 
+import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
 
 
+/**
+ * @author andre
+ *
+ */
 @Entity
 public class Filme implements Comparable<Filme> {
 	
 	@Id
 	private Long id;
 	
+	@Column(nullable=false)
 	private String titulo;
 	private String capa;
+	@Column(nullable=false)
+	private Long votos = 0l;
 
 	public Filme() {}
 	
@@ -48,6 +56,18 @@ public class Filme implements Comparable<Filme> {
 		this.capa = capa;
 	}
 
+	public Long getVotos() {
+		return votos;
+	}
+
+	public void setVotos(Long votos) {
+		this.votos = votos;
+	}
+	
+	public void adicionaVoto() {
+		votos++;
+	}
+
 	@Override
 	public int hashCode() {
 		final int prime = 31;
@@ -81,7 +101,8 @@ public class Filme implements Comparable<Filme> {
 
 	@Override
 	public String toString() {
-		return "Filme [titulo=" + titulo + "]";
+		return "Filme [id=" + id + ", titulo=" + titulo + ", capa=" + capa
+				+ ", votos=" + votos + "]";
 	}
 
 	@Override

@@ -70,7 +70,7 @@ public class VotoControllerTest {
 	@Test
 	public void quandoVotaNumFilmeEntaoRetornaSucesso() throws Exception {
 		Long filmeId = 1l;
-		when(service.carregaPorId(filmeId)).thenReturn(primeiroFilme());
+		when(service.adicionaVoto(filmeId)).thenReturn(primeiroFilme());
 		controller.votar(filmeId);
 		assertEquals(serializer.serialize("mensagem","Filme votado com sucesso"), result.serializedResult());
 	}
@@ -86,7 +86,7 @@ public class VotoControllerTest {
 	@Test
 	public void quandoVotaNumFilmeNaoEncontradoEntaoRetornaMensagem() throws Exception {
 		Long filmeId = 1l;
-		doThrow(new RuntimeException("Erro interno do servidor")).when(service).carregaPorId(filmeId);
+		doThrow(new RuntimeException("Erro interno do servidor")).when(service).adicionaVoto(filmeId);
 		controller.votar(filmeId);
 		assertEquals(serializer.serialize("error","Erro interno do servidor"), result.serializedResult());
 	}

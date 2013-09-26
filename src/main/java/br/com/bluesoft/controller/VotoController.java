@@ -10,6 +10,7 @@ import br.com.caelum.vraptor.Get;
 import br.com.caelum.vraptor.Path;
 import br.com.caelum.vraptor.Resource;
 import br.com.caelum.vraptor.Result;
+import br.com.caelum.vraptor.serialization.JSONSerialization;
 import br.com.caelum.vraptor.view.Results;
 
 @Resource
@@ -40,27 +41,31 @@ public class VotoController {
 			List<Filme> filmes = filmeService.carregaDoisFilmes(
 					new ArrayList<Filme>(usuarioSessao.getFilmesVotados()));
 			if (filmes.isEmpty()) {
-				result.use(Results.json()).from("Consulta vazia", MENSAGEM).serialize();
+				json().from("Consulta vazia", MENSAGEM).serialize();
 			} else {
-				result.use(Results.json()).from(filmes, FILMES).serialize();
+				json().from(filmes, FILMES).serialize();
 			}
 		} catch (Exception e) {
-			result.use(Results.json()).from(e.getMessage(), ERROR).serialize();
+			json().from(e.getMessage(), ERROR).serialize();
 		}
+	}
+
+	private JSONSerialization json() {
+		return result.use(Results.json());
 	}
 	
 	@Get("/votar/{id}")
 	public void votar(Long filmeId) {
 		try {
-			Filme filme = filmeService.carregaPorId(filmeId);
+			Filme filme = filmeService.adicionaVoto(filmeId);
 			if (filme != null) {
 				usuarioSessao.getFilmesVotados().add(filme);
-				result.use(Results.json()).from("Filme votado com sucesso", MENSAGEM).serialize();
+				json().from("Filme votado com sucesso", MENSAGEM).serialize();
 			} else {
-				result.use(Results.json()).from("Filme não encontrado", MENSAGEM).serialize();
+				json().from("Filme não encontrado", MENSAGEM).serialize();
 			}
 		} catch (Exception e) {
-			result.use(Results.json()).from(e.getMessage(), ERROR).serialize();
+			json().from(e.getMessage(), ERROR).serialize();
 		}
 	}
 
