@@ -8,19 +8,28 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 
+import javax.servlet.http.HttpSession;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import util.JsonSerializer;
+import br.com.bluesoft.dto.Rankings;
 import br.com.bluesoft.model.Filme;
-import br.com.bluesoft.provider.UsuarioSessao;
+import br.com.bluesoft.model.Usuario;
+import br.com.bluesoft.provider.VotosUsuario;
 import br.com.bluesoft.service.FilmeService;
+import br.com.bluesoft.service.UsuarioService;
 import br.com.caelum.vraptor.util.test.MockSerializationResult;
 
 public class VotoControllerTest {
 	
+	private static final String MENSAGEM = "mensagem";
+
+	private static final String ERRO = "erro";
+
 	private VotoController controller;
 	
 	private MockSerializationResult result;
@@ -28,17 +37,23 @@ public class VotoControllerTest {
 	private JsonSerializer serializer;
 	
 	@Mock
-	private UsuarioSessao usuarioSessao;
+	private VotosUsuario votosUsuario;
 	@Mock
-	private FilmeService service;
+	private FilmeService filmeService;
+	
+	@Mock
+	private UsuarioService usuarioService;
+
+	@Mock
+	private HttpSession session;
 	
 	@Before
 	public void setUp() {
 		serializer = new JsonSerializer();
 		result = new MockSerializationResult();
 		MockitoAnnotations.initMocks(this);
-		controller = new VotoController(result, usuarioSessao, service);
-		when(service.carregaDoisFilmes(anyListOf(Filme.class))).thenReturn(todosOsFilmes());
+		controller = new VotoController(result, votosUsuario, filmeService, usuarioService, session);
+		when(filmeService.carregaDoisFilmes(votosUsuario)).thenReturn(todosOsFilmes());
 	}
 
 	@Test
@@ -48,9 +63,9 @@ public class VotoControllerTest {
 	
 	@Test
 	public void quandoOcorreAlgumErroEntaoRetornaUmaMensage() throws Exception {
-		doThrow(new RuntimeException("Erro interno do servidor")).when(service).carregaDoisFilmes(anyListOf(Filme.class));
+		doThrow(new RuntimeException("Erro interno do servidor")).when(filmeService).carregaDoisFilmes(votosUsuario);
 		controller.carregaDoisFilmes();
-		assertEquals(serializer.serialize("error","Erro interno do servidor"), result.serializedResult());
+		assertEquals(serializer.serialize(ERRO,"Erro interno do servidor"), result.serializedResult());
 	}
 	
 	@Test
@@ -61,34 +76,109 @@ public class VotoControllerTest {
 	
 	@Test
 	public void quandoCarregaENaoExisteDadosEntaoRetornaUmaMensagem() throws Exception {
-		when(service.carregaDoisFilmes(anyListOf(Filme.class))).thenReturn(Collections.<Filme>emptyList());
+		when(filmeService.carregaDoisFilmes(votosUsuario)).thenReturn(Collections.<Filme>emptyList());
+		when(votosUsuario.ehVotacaoEncerrada()).thenReturn(true);
 		controller.carregaDoisFilmes();
-		assertEquals(serializer.serialize("mensagem","Consulta vazia"), result.serializedResult());
+		assertEquals(serializer.serialize(MENSAGEM,"votacao.encerrada"), result.serializedResult());
+	}
+	
+	@Test
+	public void quandoCarregaENaoTemMaisCombinacoesEntaoRetornaUmaMensagem() throws Exception {
+		when(filmeService.carregaDoisFilmes(votosUsuario)).thenReturn(Collections.<Filme>emptyList());
+		when(votosUsuario.ehVotacaoEncerrada()).thenReturn(false);
+		controller.carregaDoisFilmes();
+		assertEquals(serializer.serialize(MENSAGEM,"sem.filmes"), result.serializedResult());
 	}
 
 	
 	@Test
 	public void quandoVotaNumFilmeEntaoRetornaSucesso() throws Exception {
 		Long filmeId = 1l;
-		when(service.adicionaVoto(filmeId)).thenReturn(primeiroFilme());
-		controller.votar(filmeId);
-		assertEquals(serializer.serialize("mensagem","Filme votado com sucesso"), result.serializedResult());
+		Long filmeIdNaoVotado = 2l;
+		when(filmeService.carregaPorId(filmeId)).thenReturn(primeiroFilme());
+		controller.votar(filmeId, filmeIdNaoVotado);
+		assertEquals(serializer.serialize(MENSAGEM,"filme.voltado.sucesso"), result.serializedResult());
 	}
 	
 	@Test
-	public void quandoVotaNumFilmeEOcorreAlgumErrorEntaoRetornaUmaMensagem() throws Exception {
+	public void quandoVotaNumFilmeEOcorreAlgumErroEntaoRetornaMensagem() throws Exception {
 		Long filmeId = 1l;
-		when(service.carregaPorId(filmeId)).thenReturn(null);
-		controller.votar(filmeId);
-		assertEquals(serializer.serialize("mensagem","Filme não encontrado"), result.serializedResult());
+		Long filmeIdNaoVotado = 2l;
+		doThrow(new RuntimeException("Erro interno do servidor"))
+		.when(votosUsuario).adicionaVotacaoFilme(filmeId, filmeIdNaoVotado);
+		controller.votar(filmeId, filmeIdNaoVotado);
+		assertEquals(serializer.serialize(ERRO,"Erro interno do servidor"), result.serializedResult());
 	}
 	
 	@Test
-	public void quandoVotaNumFilmeNaoEncontradoEntaoRetornaMensagem() throws Exception {
-		Long filmeId = 1l;
-		doThrow(new RuntimeException("Erro interno do servidor")).when(service).adicionaVoto(filmeId);
-		controller.votar(filmeId);
-		assertEquals(serializer.serialize("error","Erro interno do servidor"), result.serializedResult());
+	public void quandoConfirmaVotacaoComAlgumFilmeVotadoEntaoRetornaSucesso() throws Exception {
+		when(votosUsuario.getVotacaoFilmes()).thenReturn(primeiraVotacao());
+		Usuario usuario = new Usuario();
+		controller.confirmaVotacao(usuario);
+		Rankings rankings = new Rankings();
+		rankings.rankings = Collections.emptyList();
+		rankings.rankingUsuario = Collections.emptyList();
+		rankings.mensagem = "usuario.salvo.sucesso";
+		assertEquals(serializer.withoutRoot().serialize(rankings), result.serializedResult());
+	}
+	
+	@Test
+	public void quandoConfirmaVotacaoComNenhumFilmeVotadoEntaoRetornaMensagem() throws Exception {
+		when(votosUsuario.getFilmeIdVotados()).thenReturn(Collections.<Long>emptyList());
+		Usuario usuario = new Usuario();
+		controller.confirmaVotacao(usuario);
+		assertEquals(serializer.serialize(MENSAGEM, "nenhum.filme.voltado"), result.serializedResult());
+	}
+	
+	@Test
+	public void quandoConfirmaVotacaoEOcorreAlgumErroEntaoRetornaMensagem() throws Exception {
+		when(votosUsuario.getVotacaoFilmes()).thenReturn(primeiraVotacao());
+		doThrow(new RuntimeException("Erro interno do servidor"))
+		.when(usuarioService).salvaVotacao(any(VotosUsuario.class), any(Usuario.class));
+		Usuario usuario = new Usuario();
+		controller.confirmaVotacao(usuario);
+		assertEquals(serializer.serialize(ERRO,"Erro interno do servidor"), result.serializedResult());
+	}
+	
+	@Test
+	public void quandoConfirmaVotacaoEJaTemEmailCadastradoEntaoRetornaMensagem() throws Exception {
+		when(usuarioService.existeEmailUsuario(any(String.class))).thenReturn(true);
+		Usuario usuario = new Usuario();
+		controller.confirmaVotacao(usuario);
+		assertEquals(serializer.serialize(MENSAGEM,"usuario.ja.cadastrado"), result.serializedResult());
+	}
+	
+	@Test
+	public void quandoResetaVotacaoEntaoRetornaMensagem() throws Exception {
+		controller.resetaVotacao();
+		assertEquals(serializer.serialize(MENSAGEM,"votacao.reiniciada"), result.serializedResult());
+	}
+	
+	@Test
+	public void quandoCarregaRankingSemFilmesEntaoRetornaMensagem() throws Exception {
+		controller.carregaRanking();
+		assertEquals(serializer.serialize(MENSAGEM,"sem.filmes"), result.serializedResult());
+	}
+	
+	@Test
+	public void quandoCarregaRankingComFilmes() throws Exception {
+		when(filmeService.carregaRanking()).thenReturn(todosOsFilmes());
+		controller.carregaRanking();
+		assertEquals(serializer.serialize("filmes",todosOsFilmes()), result.serializedResult());
+	}
+	
+	@Test
+	public void quandoCarregaRankingEOcorreAlgumErroEntaoRetornaMensagem() throws Exception {
+		doThrow(new RuntimeException("Erro Interno do servidor"))
+		.when(filmeService).carregaRanking();
+		controller.carregaRanking();
+		assertEquals(serializer.serialize("erro","Erro Interno do servidor"), result.serializedResult());
+	}
+
+	private List<Long[]> primeiraVotacao() {
+		List<Long[]> list = new ArrayList<>();
+		list.add(new Long[]{1l, 2l});
+		return list;
 	}
 
 	private Filme primeiroFilme() {
@@ -105,8 +195,11 @@ public class VotoControllerTest {
 		return filmes;
 	}
 
-	private Filme criaFilme(long id, String nome) {
-		return new Filme(id, nome);
+	private Filme criaFilme(long id, String titulo) {
+		Filme filme = new Filme();
+		filme.setId(id);
+		filme.setTitulo(titulo);
+		return filme;
 	}
 
 }

@@ -24,9 +24,9 @@
         <dispatcher>REQUEST</dispatcher>
     </filter-mapping>
     
-	<error-page>
-		<exception-type>br.com.bluesoft.interceptor.AuthenticationException</exception-type>
-		<location>/index.jsp</location>
-	</error-page>
-
+    <context-param>
+		<param-name>br.com.caelum.vraptor.encoding</param-name>
+		<param-value>UTF-8</param-value>
+	</context-param>
+    
 </web-app>

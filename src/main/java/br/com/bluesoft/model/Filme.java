@@ -1,8 +1,14 @@
 package br.com.bluesoft.model;
 
+import java.util.List;
+
 import javax.persistence.Column;
 import javax.persistence.Entity;
 import javax.persistence.Id;
+import javax.persistence.JoinColumn;
+import javax.persistence.JoinTable;
+import javax.persistence.ManyToMany;
+import javax.persistence.Transient;
 
 
 /**
@@ -18,20 +24,21 @@ public class Filme implements Comparable<Filme> {
 	@Column(nullable=false)
 	private String titulo;
 	private String capa;
-	@Column(nullable=false)
+	@Transient
+	private Long ranking = 0l;
+	@Transient
 	private Long votos = 0l;
+	
+	
+	@ManyToMany
+	@JoinTable(name = "FILME_USUARIO", joinColumns = { 
+			@JoinColumn(name = "FILME_ID", nullable = false, updatable = false) }, 
+			inverseJoinColumns = { @JoinColumn(name = "USUARIO_ID", 
+					nullable = false, updatable = false) })
+	private List<Usuario> usuarios;
 
 	public Filme() {}
 	
-	public Filme(String titulo) {
-		this.titulo = titulo;
-	}
-
-	public Filme(Long id, String titulo) {
-		this.id = id;
-		this.titulo = titulo;
-	}
-
 	public Long getId() {
 		return id;
 	}
@@ -63,9 +70,21 @@ public class Filme implements Comparable<Filme> {
 	public void setVotos(Long votos) {
 		this.votos = votos;
 	}
-	
-	public void adicionaVoto() {
-		votos++;
+
+	public Long getRanking() {
+		return ranking;
+	}
+
+	public void setRanking(Long ranking) {
+		this.ranking = ranking;
+	}
+
+	public List<Usuario> getUsuarios() {
+		return usuarios;
+	}
+
+	public void setUsuarios(List<Usuario> usuarios) {
+		this.usuarios = usuarios;
 	}
 
 	@Override
@@ -101,7 +120,7 @@ public class Filme implements Comparable<Filme> {
 
 	@Override
 	public String toString() {
-		return "Filme [id=" + id + ", titulo=" + titulo + ", capa=" + capa
+		return "Filme [id=" + id + ", titulo=" + titulo
 				+ ", votos=" + votos + "]";
 	}
 

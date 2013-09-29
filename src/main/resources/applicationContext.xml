@@ -13,9 +13,7 @@
 	<context:annotation-config />
 	<context:component-scan base-package="br.com.bluesoft" />
 	
-	<context:component-scan base-package="dbunit" />
-	
-	<context:property-placeholder location="classpath:application-test.properties" />	
+	<context:property-placeholder location="classpath:application.properties" />	
 	
 	<tx:annotation-driven/>	
 	
@@ -43,7 +41,7 @@
 				<prop key="hibernate.connection.characterEncoding">UTF-8</prop>
 				<prop key="hibernate.connection.charSet">UTF-8</prop>
 				<prop key="hibernate.ejb.naming_strategy">org.hibernate.cfg.ImprovedNamingStrategy</prop>
-				<prop key="hibernate.hbm2ddl.auto">update</prop>
+				<prop key="hibernate.hbm2ddl.auto">create</prop>
 			</props>
 		</property>
 	</bean>
