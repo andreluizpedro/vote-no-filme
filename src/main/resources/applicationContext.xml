@@ -36,7 +36,6 @@
 		<property name="packagesToScan" value="br.com.bluesoft" />
 		<property name="jpaProperties">
 			<props>
-				<prop key="hibernate.format_sql">true</prop>
 				<prop key="hibernate.connection.useUnicode">true</prop>
 				<prop key="hibernate.connection.characterEncoding">UTF-8</prop>
 				<prop key="hibernate.connection.charSet">UTF-8</prop>
